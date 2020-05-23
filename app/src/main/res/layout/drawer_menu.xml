@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/friend1"
+            android:title="friend1"/>
+        <item
+            android:id="@+id/friend2"
+            android:title="friend2"/>
+        />
+        <item
+            android:id="@+id/friend3"
+            android:title="friend3"/>
+        <item
+            android:id="@+id/friend4"
+            android:title="friend4"/>
+    </group>
+</menu>
