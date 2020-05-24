@@ -4,31 +4,33 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     NavigationView settings_drawer;
     EditText textInput;
-    TextView txtOut;
+   // TextView txtOut;
     ImageButton sendButton, logOut, uploadButton;
     DrawerLayout mDrawerLayout;
-    PopupWindow popUp;
+    RecyclerView mMessageRecycler;
 
     boolean doubleBackToExitPressedOnce = false;
     public static final int PICK_IMAGE = 1;
@@ -43,17 +45,25 @@ public class MainActivity extends AppCompatActivity {
 
         settings_drawer = findViewById(R.id.settings_drawer);
         textInput = findViewById(R.id.TextInput);
-        txtOut = findViewById(R.id.txtOut);
+        //txtOut = findViewById(R.id.txtOut);
         sendButton = findViewById(R.id.sendButton);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         logOut = findViewById(R.id.logOut_img);
         uploadButton = findViewById(R.id.uploadButton);
+        List<MessageAttr> msgList =  new ArrayList<>();
 
-        popUp = new PopupWindow(this);
 
         ActionBar actionbar = getSupportActionBar();
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_action_name);
+
+        mMessageRecycler = findViewById(R.id.message_list);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        mMessageRecycler.setLayoutManager(linearLayoutManager);
+        MessageListAdapter adapter = new MessageListAdapter(this, msgList);
+        mMessageRecycler.setAdapter(adapter);
+
+
 
 
         textInput.setOnKeyListener((v, keyCode, event) -> {
@@ -63,7 +73,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     /* send text */
-                    txtOut.append( /* user name: + */ "\n" + textInput.getText());
+                    //txtOut.append( /* user name: + */ "\n" + textInput.getText());
+                    MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
+                    msgList.add(message);
                     textInput.getText().clear();
                     return true;
                 }
@@ -77,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
             }
             else {
                 /* send text */
-                txtOut.append( /* user name: + */ "\n" + textInput.getText());
+               // txtOut.append( /* user name: + */ "\n" + textInput.getText());
+                MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
+                msgList.add(message);
                 textInput.getText().clear();
             }
         });
@@ -91,7 +105,18 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
         });
 
+    /* On message receive
+     * do something here*/
 
+    /* Create chat group*/
+
+    /* View online status*/
+
+    /* Create multiple CONCURRENT chat activities*/
+
+    /* Send file */
+
+    /*Add friend*/
 
 
 
@@ -120,5 +145,4 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Press again to exit", Toast.LENGTH_SHORT).show();
         new Handler().postDelayed(() -> doubleBackToExitPressedOnce=false, 2000);
     }
-
 }
