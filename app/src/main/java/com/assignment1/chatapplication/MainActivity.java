@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,7 +96,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        logOut.setOnClickListener((View v) -> finish());
+        logOut.setOnClickListener((View v) -> {
+            try {
+                Server.getInstance().getWorker().logoffHandle();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+                finish();
+    });
 
         uploadButton.setOnClickListener((View v) -> {
             Intent intent = new Intent();

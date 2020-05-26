@@ -12,8 +12,7 @@ public class SignUp extends AppCompatActivity {
 
     EditText username, password, rePassword;
     Button button_signup_confirm, button_signup_return;
-    private String newPassword, newUsername; // to save credentials
-
+    private String newPassword, newUsername, newRePassword; // to save credentials
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,20 +25,14 @@ public class SignUp extends AppCompatActivity {
         rePassword = findViewById(R.id.newRePassword);
 
         button_signup_confirm.setOnClickListener((View v) -> {
-             if (   username.getText().toString().equals("")
-                ||  password.getText().toString().equals("")
-                ||rePassword.getText().toString().equals("")) {
-                 Toast.makeText(this, "Fields cannot be left empty", Toast.LENGTH_SHORT).show();
+            newUsername = username.getText().toString();
+            newPassword = password.getText().toString();
+            newRePassword = rePassword.getText().toString();
+           if(Server.getInstance().worker == null){
+//                    .handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
+               Toast.makeText(this, "null", Toast.LENGTH_SHORT).show();
+           } else finish();
 
-             }
-             else if (!password.getText().toString().equals(rePassword.getText().toString())) {
-                 Toast.makeText(this, "Password does not match!", Toast.LENGTH_SHORT).show();
-             }
-             else{
-                    //create account
-                     Toast.makeText(this, "Success!", Toast.LENGTH_SHORT).show();
-                     finish();
-             }
         });
 
         button_signup_return.setOnClickListener((View v) -> finish());

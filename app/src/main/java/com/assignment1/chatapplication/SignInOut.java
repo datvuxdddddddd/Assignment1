@@ -16,29 +16,26 @@ public class SignInOut extends AppCompatActivity {
 
     EditText username, password;
     Button button_signin, button_signup;
-    public String userPassword, userUsername; // to save credentials
-    Server w;
+    private String userPassword, userUsername; // to save credentials
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
+        //Server.getInstance();
 
-        /* Start a chat server */
-        ServerMain startServer = new ServerMain();
-        if(startServer.main()){
+
+        if(true){
             Toast.makeText(this, "Server successfully initialized", Toast.LENGTH_SHORT).show();
         }
         else {
             //do something
         }
 
-
         button_signin = findViewById(R.id.button_signin);
         button_signup = findViewById(R.id.button_signup);
         username = findViewById(R.id.Username);
         password = findViewById(R.id.Password);
-
 
         button_signin.setOnClickListener((View v) -> {
             userPassword = password.getText().toString();
@@ -48,8 +45,7 @@ public class SignInOut extends AppCompatActivity {
             }
             else {
                 try {
-                    if (w.getWorker().handleLogin(userUsername,userPassword)){
-                        Toast.makeText(this, "Welcome " + userUsername, Toast.LENGTH_SHORT).show();
+                    if (Server.getInstance().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
 
                         /* optionally, clear all text fields */
                         username.getText().clear();

@@ -1,5 +1,6 @@
 package com.assignment1.chatapplication;
 
+import android.content.Context;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -27,18 +28,17 @@ public class ServerWorker extends Thread{
     private static  ArrayList<String> passwordList = new ArrayList<>();
 
 
-    public ServerWorker(Server server, Socket clientSocket) {
+    public ServerWorker(Server server, Socket clientSocket){
         this.server = server;
         this.clientSocket = clientSocket;
     }
 
     @Override
     public void run() {
-
             passwordList.add("admin");
             userList.add("admin");
-
     }
+
 
    /* private void handleClientSocket() throws IOException, InterruptedException {
         this.inputStream = clientSocket.getInputStream();
@@ -86,42 +86,28 @@ public class ServerWorker extends Thread{
         System.out.println(passwordList);
     }
 
-    private void handleRegister(String[] token) {
-        if(token.length == 4){
-            String username = token[1];
-            String password = token[2];
-            String confirmPass = token[3];
-            if(!isRegisted(username)) {
-                if (password.equals(confirmPass)) {
+    public boolean handleRegister(String username, String password, String rePassword, Context c) {
+        if (!username.equals("") && !password.equals("") && !rePassword.equals("")) {
+            if (!isRegistered(username)){
+                if (password.equals(rePassword)){
                     userList.add(username);
                     passwordList.add(password);
-                    String msgConfirm = "Register success\n" + "Username: " + username + "\n" + "Password: " + password + "\n";
-                    try {
-                        outputStream.write(msgConfirm.getBytes());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Toast.makeText(c,"Register success!", Toast.LENGTH_SHORT).show();
+                    return true;
                 } else {
-                    String error = "Passwords do not match. Please retry\n";
-                    try {
-                        outputStream.write(error.getBytes());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Toast.makeText(c,"Password does not match.", Toast.LENGTH_SHORT).show();
+                    return false;
                 }
-            }
-            else {
-                String error = "Already a member\n";
-                try {
-                    outputStream.write(error.getBytes());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } else {
+                Toast.makeText(c,"User already exist.", Toast.LENGTH_SHORT).show();
+                return false;
             }
         }
+        Toast.makeText(c,"No empty field.", Toast.LENGTH_SHORT).show();
+        return false;
     }
 
-    public boolean isRegisted(String username){
+    public boolean isRegistered(String username){
         return userList.contains(username);
     }
 
@@ -142,8 +128,6 @@ public class ServerWorker extends Thread{
             topicSet.add(topic);
         }
     }
-
-
 
     private void handleMessage(String[] token) throws IOException {
         String sendTo = token[1];
@@ -167,7 +151,7 @@ public class ServerWorker extends Thread{
 
     }
 
-    private void logoffHandle() throws IOException {
+    public void logoffHandle() throws IOException {
         server.removeWorker(this);
         List<ServerWorker> workerList = server.getWorkerList();
         String offlmsg = "Offline " + login + "\n";
@@ -183,9 +167,9 @@ public class ServerWorker extends Thread{
         return login;
     }
 
-    public boolean handleLogin(String username, String password) throws IOException {
+    public boolean handleLogin(String username, String password, Context c) throws IOException {
 
-        if (isRegisted(login)) {
+        if (isRegistered(login)) {
             if (
                 /*password.equals(passwordList.get(userList.indexOf(token[1]))) */
                     username.equals(password)) {
@@ -195,6 +179,7 @@ public class ServerWorker extends Thread{
                         if (!login.equals(worker.getLogin()) && login.contentEquals("placeHolder")) {
                             String msg_1 = worker.getLogin() + ": online" + "\n";
                             send(msg_1);
+                            Toast.makeText(c, "Login", Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -207,12 +192,12 @@ public class ServerWorker extends Thread{
                 return true;
             }
             else {
-                // print wrong credentials
+                Toast.makeText(c, "Wrong credentials", Toast.LENGTH_SHORT).show();
                 return false;
             }
         }
         else {
-            //print not registered
+            Toast.makeText(c, "User not registered", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
