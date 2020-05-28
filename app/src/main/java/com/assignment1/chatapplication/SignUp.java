@@ -8,6 +8,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import static com.assignment1.chatapplication.Server.getInstance;
+import static com.assignment1.chatapplication.Server.instance;
+
+
 public class SignUp extends AppCompatActivity {
 
     EditText username, password, rePassword;
@@ -28,11 +32,9 @@ public class SignUp extends AppCompatActivity {
             newUsername = username.getText().toString();
             newPassword = password.getText().toString();
             newRePassword = rePassword.getText().toString();
-           if(Server.getInstance().getWorker() == null){
-//                    .handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
-               Toast.makeText(this, "null", Toast.LENGTH_SHORT).show();
-           } else finish();
-
+           if(instance.getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
+               finish();
+           }
         });
 
         button_signup_return.setOnClickListener((View v) -> finish());

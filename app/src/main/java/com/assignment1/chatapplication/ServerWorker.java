@@ -12,12 +12,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import android.widget.Toast;
 
 
-public class ServerWorker extends Thread{
+public class ServerWorker extends Thread implements Runnable{
     private final Socket clientSocket;
     private final Server server;
     private String login = "placeHolder";
@@ -169,10 +168,8 @@ public class ServerWorker extends Thread{
 
     public boolean handleLogin(String username, String password, Context c) throws IOException {
 
-        if (isRegistered(login)) {
-            if (
-                /*password.equals(passwordList.get(userList.indexOf(token[1]))) */
-                    username.equals(password)) {
+        if (isRegistered(username)) {
+            if (password.equals(passwordList.get(userList.indexOf(username)))) {
                 List<ServerWorker> workerList = server.getWorkerList();
                 for (ServerWorker worker : workerList) {
                     if (worker.getLogin() != null) {

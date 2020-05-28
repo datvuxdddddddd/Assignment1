@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
+import static com.assignment1.chatapplication.Server.getInstance;
 import static com.assignment1.chatapplication.Server.instance;
 
 public class SignInOut extends AppCompatActivity {
@@ -25,7 +26,8 @@ public class SignInOut extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
 
-        instance = new Server(8818);
+        instance = getInstance();
+
 
         button_signin = findViewById(R.id.button_signin);
         button_signup = findViewById(R.id.button_signup);
