@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
+import static com.assignment1.chatapplication.Server.instance;
+
 public class SignInOut extends AppCompatActivity {
 
     EditText username, password;
@@ -22,15 +24,8 @@ public class SignInOut extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
-        //Server.getInstance();
 
-
-        if(true){
-            Toast.makeText(this, "Server successfully initialized", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            //do something
-        }
+        instance = new Server(8818);
 
         button_signin = findViewById(R.id.button_signin);
         button_signup = findViewById(R.id.button_signup);
@@ -45,7 +40,7 @@ public class SignInOut extends AppCompatActivity {
             }
             else {
                 try {
-                    if (Server.getInstance().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
+                    if (instance.getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
 
                         /* optionally, clear all text fields */
                         username.getText().clear();

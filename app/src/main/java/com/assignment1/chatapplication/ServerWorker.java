@@ -103,7 +103,7 @@ public class ServerWorker extends Thread{
                 return false;
             }
         }
-        Toast.makeText(c,"No empty field.", Toast.LENGTH_SHORT).show();
+        else Toast.makeText(c,"No empty field.", Toast.LENGTH_SHORT).show();
         return false;
     }
 

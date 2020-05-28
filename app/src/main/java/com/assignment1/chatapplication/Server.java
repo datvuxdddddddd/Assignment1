@@ -11,6 +11,7 @@ public class Server extends Thread{
     public ArrayList<ServerWorker> workerlist = new ArrayList<>();
     public static Server instance = null;
     public ServerWorker worker;
+    public ServerSocket serverSocket;
 
     public ServerWorker getWorker() { /** Based on username */
         return worker;
@@ -18,14 +19,14 @@ public class Server extends Thread{
 
     public static synchronized Server getInstance(){
         if(instance == null) {
-            instance = new Server(8188);
+            instance = new Server(8818);
             instance.start();
         }
         return instance;
     }
 
     public Server(int serverPort){
-        this.serverPort = serverPort;
+        this.serverPort = 8818;
 
     }
     public List<ServerWorker> getWorkerList(){
@@ -34,18 +35,19 @@ public class Server extends Thread{
     @Override
     public void run() {
         try {
-            ServerSocket serverSocket = new ServerSocket(serverPort);
             while (true) {
+                serverSocket = new ServerSocket(serverPort);
                 System.out.println("About to accept client connection ...");
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Accept connection from: " + clientSocket);
-                worker = new ServerWorker(this, clientSocket);
-                workerlist.add(worker);
-                worker.start();
+//                System.out.println("Accept connection from: " + clientSocket);
+//                worker = new ServerWorker(this, clientSocket);
+                System.out.println("concacditme " + worker);
+//                workerlist.add(worker);
+//                worker.start();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            } catch(IOException e){
+                e.printStackTrace();
+            }
     }
 
     public void removeWorker(ServerWorker serverWorker) {

@@ -28,7 +28,7 @@ public class SignUp extends AppCompatActivity {
             newUsername = username.getText().toString();
             newPassword = password.getText().toString();
             newRePassword = rePassword.getText().toString();
-           if(Server.getInstance().worker == null){
+           if(Server.getInstance().getWorker() == null){
 //                    .handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
                Toast.makeText(this, "null", Toast.LENGTH_SHORT).show();
            } else finish();
