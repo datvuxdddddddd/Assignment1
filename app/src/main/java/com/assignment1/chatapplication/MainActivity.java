@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.assignment1.chatapplication.SignInOut.chatServer;
+
+
 public class MainActivity extends AppCompatActivity {
 
     NavigationView settings_drawer;
@@ -35,13 +38,16 @@ public class MainActivity extends AppCompatActivity {
 
     boolean doubleBackToExitPressedOnce = false;
     public static final int PICK_IMAGE = 1;
-
+    public static List<MessageAttr> msgList =  new ArrayList<>();
+    //public String senderName = SignInOut.getUserUsername();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        String currentUser = SignInOut.getUserUsername();
 
         settings_drawer = findViewById(R.id.settings_drawer);
         textInput = findViewById(R.id.TextInput);
@@ -50,12 +56,12 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout = findViewById(R.id.drawer_layout);
         logOut = findViewById(R.id.logOut_img);
         uploadButton = findViewById(R.id.uploadButton);
-        List<MessageAttr> msgList =  new ArrayList<>();
 
 
         ActionBar actionbar = getSupportActionBar();
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_action_name);
+        actionbar.setTitle(currentUser);
 
         mMessageRecycler = findViewById(R.id.message_list);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -63,18 +69,16 @@ public class MainActivity extends AppCompatActivity {
         MessageListAdapter adapter = new MessageListAdapter(this, msgList);
         mMessageRecycler.setAdapter(adapter);
 
-
-
-
         textInput.setOnKeyListener((v, keyCode, event) -> {
             if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                if (textInput.getText().toString().isEmpty()){
-                    //do nothing
-                }
-                else {
+                if (!textInput.getText().toString().isEmpty()){
                     /* send text */
-                    //txtOut.append( /* user name: + */ "\n" + textInput.getText());
                     MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
+                    try {
+                        chatServer.getWorker().handleMessage(message);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     msgList.add(message);
                     textInput.getText().clear();
                     return true;
@@ -84,13 +88,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         sendButton.setOnClickListener((View v) -> {
-            if (textInput.getText().toString().isEmpty()){
-                //do nothing
-            }
-            else {
-                /* send text */
-               // txtOut.append( /* user name: + */ "\n" + textInput.getText());
+            if (!textInput.getText().toString().isEmpty()){
                 MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
+                try {
+                    chatServer.getWorker().handleMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 msgList.add(message);
                 textInput.getText().clear();
             }
@@ -98,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
         logOut.setOnClickListener((View v) -> {
             try {
-                Server.getInstance().getWorker().logoffHandle();
+                chatServer.getWorker().logoffHandle();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -133,6 +137,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    }
+
+    public static List<MessageAttr> getMsgList() {
+        return msgList;
     }
 
     @Override

@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import static com.assignment1.chatapplication.Server.getInstance;
-import static com.assignment1.chatapplication.Server.instance;
+import static com.assignment1.chatapplication.SignInOut.chatServer;
 
 
 public class SignUp extends AppCompatActivity {
@@ -32,7 +32,7 @@ public class SignUp extends AppCompatActivity {
             newUsername = username.getText().toString();
             newPassword = password.getText().toString();
             newRePassword = rePassword.getText().toString();
-           if(instance.getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
+           if(chatServer.getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
                finish();
            }
         });

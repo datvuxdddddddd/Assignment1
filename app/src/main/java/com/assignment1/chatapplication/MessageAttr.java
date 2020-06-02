@@ -15,7 +15,7 @@ public class MessageAttr {
     //sender
     private String sender;
     //Time
-    private LocalTime timeSent;
+    private String timeSent;
     //Set time format
     DateTimeFormatter hhMM = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -23,7 +23,7 @@ public class MessageAttr {
         this.msgType = msgType;
         this.msgContent = msgContent;
         this.sender = sender;
-        this.timeSent = LocalTime.now();
+        this.timeSent = LocalTime.now().format(hhMM);
     }
 
     public String getMsgContent() {
@@ -47,7 +47,6 @@ public class MessageAttr {
     }
 
     public String getTime(){
-        //should be time of sender, save this to another String var.
-        return LocalTime.now().format(hhMM);
+        return timeSent;
     }
 }

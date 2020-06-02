@@ -12,11 +12,9 @@ import java.util.List;
 
 public class Server extends Thread implements Runnable{
 
-
-
     public final int serverPort;
     public ArrayList<ServerWorker> workerlist = new ArrayList<>();
-    public static Server instance;
+    //public static Server instance;
     public ServerWorker worker;
     public ServerSocket serverSocket;
     public Socket clientSocket;
@@ -26,7 +24,7 @@ public class Server extends Thread implements Runnable{
         return worker;
     }
 
-    public static synchronized Server getInstance(){
+    public static synchronized Server getInstance(Server instance){
         if(instance == null) {
             instance = new Server(8818);
             instance.start();
@@ -48,6 +46,7 @@ public class Server extends Thread implements Runnable{
             serverSocket = new ServerSocket(serverPort);
             //serverSocket.setSoTimeout(10000);
             InetAddress host = InetAddress.getLocalHost();
+            System.out.println(host);
             clientSocket = new Socket(host.getHostName(), 8818);
 
         } catch (IOException e) {

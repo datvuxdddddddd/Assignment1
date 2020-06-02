@@ -24,7 +24,7 @@ public class ServerWorker extends Thread implements Runnable{
     private InputStream inputStream;
     private HashSet<String> topicSet = new HashSet<>();
     private static ArrayList<String> userList = new ArrayList<>();
-    private static  ArrayList<String> passwordList = new ArrayList<>();
+    private static ArrayList<String> passwordList = new ArrayList<>();
 
 
     public ServerWorker(Server server, Socket clientSocket){
@@ -38,8 +38,8 @@ public class ServerWorker extends Thread implements Runnable{
             userList.add("admin");
     }
 
-
-   /* private void handleClientSocket() throws IOException, InterruptedException {
+/*
+   private void handleClientSocket() throws IOException, InterruptedException {
         this.inputStream = clientSocket.getInputStream();
         this.outputStream = clientSocket.getOutputStream();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -78,7 +78,7 @@ public class ServerWorker extends Thread implements Runnable{
             }
         }
         clientSocket.close();
-    } */
+    }*/
 
     private void printInfo() throws IOException {
         System.out.println(userList + "\n");
@@ -128,22 +128,22 @@ public class ServerWorker extends Thread implements Runnable{
         }
     }
 
-    private void handleMessage(String[] token) throws IOException {
-        String sendTo = token[1];
-        String body = token[2];
+    public void handleMessage(MessageAttr message) throws IOException {
 
-        boolean isTopic = sendTo.charAt(0) == '#';
+        boolean isTopic = message.getSender().charAt(0) == '#';
 
         List<ServerWorker> workerList = server.getWorkerList();
         for(ServerWorker worker : workerList){
             if(isTopic){
-                if(worker.isMemberOfTopic(sendTo)){
-                    String outMsg = "from " + sendTo + " " + "by " + login + ":" + " " + body + "\n";
+                if(worker.isMemberOfTopic(message.getSender())){
+                    String outMsg = "from " + message.getSender() + " " + "by " + login + ":" + " " + message.getMsgContent() + "\n";
                     worker.send(outMsg);
+                    MainActivity.getMsgList().add(message);
                 }
             }
-            if(sendTo.equalsIgnoreCase(worker.getLogin())){
-                String outMsg = "from " + login + ":" + " " + body + "\n";
+            if(message.getSender().equalsIgnoreCase(worker.getLogin())){
+                String outMsg = "from " + login + ":" + " " + message.getMsgContent() + "\n";
+                MainActivity.getMsgList().add(message);
                 worker.send(outMsg);
             }
         }
@@ -204,4 +204,5 @@ public class ServerWorker extends Thread implements Runnable{
             outputStream.write(msg.getBytes());
         }
     }
+
 }
