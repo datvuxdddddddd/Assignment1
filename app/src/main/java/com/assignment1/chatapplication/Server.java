@@ -13,23 +13,18 @@ import java.util.List;
 public class Server extends Thread implements Runnable{
 
     public final int serverPort;
-    public ArrayList<ServerWorker> workerlist = new ArrayList<>();
+    private ArrayList<ServerWorker> workerlist = new ArrayList<>();
     //public static Server instance;
-    public ServerWorker worker;
-    public ServerSocket serverSocket;
+    private ServerWorker worker;
+    private ServerSocket serverSocket;
     public Socket clientSocket;
 
-
-    public ServerWorker getWorker() { /** Based on username */
+    public ServerWorker getWorker() {
         return worker;
     }
 
-    public static synchronized Server getInstance(Server instance){
-        if(instance == null) {
-            instance = new Server(8818);
-            instance.start();
-        }
-        return instance;
+    public ServerSocket getServerSocket() {
+        return serverSocket;
     }
 
     public Server(int serverPort){
@@ -44,34 +39,27 @@ public class Server extends Thread implements Runnable{
     public void run() {
         try {
             serverSocket = new ServerSocket(serverPort);
-            //serverSocket.setSoTimeout(10000);
-            InetAddress host = InetAddress.getLocalHost();
-            System.out.println(host);
-            clientSocket = new Socket(host.getHostName(), 8818);
-
+            //InetAddress host = InetAddress.getLocalHost();
+            //System.out.println(host);
+            clientSocket = new Socket("10.0.2.16", 8818);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         while (true) {
-                System.out.println("About to accept client connection ...");
-
+                System.out.println("Looking for connect request ...");
             try {
-
                 clientSocket = serverSocket.accept();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             System.out.println("Accept connection from: " + clientSocket);
-                worker = new ServerWorker(this, clientSocket);
-                workerlist.add(worker);
-                worker.start();
+            worker = new ServerWorker(this, clientSocket);
+            workerlist.add(worker);
+            worker.run();
         }
     }
 
     public void removeWorker(ServerWorker serverWorker) {
         workerlist.remove(serverWorker);
     }
-
 }

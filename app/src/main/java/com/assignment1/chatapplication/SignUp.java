@@ -8,8 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import static com.assignment1.chatapplication.Server.getInstance;
-import static com.assignment1.chatapplication.SignInOut.chatServer;
+import static com.assignment1.chatapplication.SignInOut.getChatServer;
 
 
 public class SignUp extends AppCompatActivity {
@@ -32,7 +31,7 @@ public class SignUp extends AppCompatActivity {
             newUsername = username.getText().toString();
             newPassword = password.getText().toString();
             newRePassword = rePassword.getText().toString();
-           if(chatServer.getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
+           if(getChatServer().getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
                finish();
            }
         });

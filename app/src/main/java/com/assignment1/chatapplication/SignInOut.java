@@ -4,9 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,35 +17,48 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.concurrent.ExecutionException;
 
 public class SignInOut extends AppCompatActivity{
 
     EditText username, password, serverAddressInput;
     Button button_signin, button_signup, button_server_start, button_server_connect;
+
     private String userPassword;
-    private static String userUsername; // change back to non static
-    public static Server chatServer = null;
-    private static String host = null;
-    private Socket userSocket = null;
-    private String connectToIPAddress = null;
+    private static String userUsername;
+    private static Server chatServer = null;
+    private static Socket userSocket = null;
+    private static String connectToIPAddress = null;
+
+    public static boolean validateIPPattern(final String ip) {
+        String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+        return ip.matches(PATTERN);
+    }
 
     @SuppressLint("StaticFieldLeak")
-    static AsyncTask<String, Void, String> getLocalHostAddress = new AsyncTask<String, Void, String>() {
+    private static class createNewUserSocket extends AsyncTask<Void, Void, Void>{
         @Override
-        protected String doInBackground(String... strings) {
-            return host;
+        protected Void doInBackground(Void... voids) {
+            try {
+                        userSocket = new Socket(connectToIPAddress, 8818);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            return null;
         }
-    };
+    }
 
+    public static Server getChatServer() {
+        return chatServer;
+    }
 
-
+    public String getWiFiIPAddress(){
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
 
@@ -67,7 +78,7 @@ public class SignInOut extends AppCompatActivity{
             }
             else {
                 try {
-                    if (chatServer.getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
+                    if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
                             Toast.makeText(this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show();
 
                         /* optionally, clear all text fields */
@@ -93,17 +104,12 @@ public class SignInOut extends AppCompatActivity{
         });
 
         button_server_start.setOnClickListener((View v) -> {
-            if (chatServer == null) {
+            if (chatServer == null){
                 chatServer = new Server(8818);
                 chatServer.start();
-
-                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-
-                Toast.makeText(this, "Server started at " + ipAddress, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Server started at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
             }
             else Toast.makeText(this, "Server already started", Toast.LENGTH_SHORT).show();
-
         });
 
         button_server_connect.setOnClickListener((View v) -> {
@@ -113,13 +119,21 @@ public class SignInOut extends AppCompatActivity{
             serverAddressInput =dialogView.findViewById(R.id.serverAddressInput);
             serverAddressInput.setOnKeyListener((vv, keyCode, event) -> {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                        connectToIPAddress = serverAddressInput.getText().toString();
-                    try {
-                        userSocket = new Socket(connectToIPAddress, 8818); //TODO async
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    connectToIPAddress = serverAddressInput.getText().toString();
+                    if (validateIPPattern(connectToIPAddress)){
+                        new createNewUserSocket().execute();
+                        serverAddressInput.clearComposingText();
+                        dialogBuilder.dismiss();
+                        Toast.makeText(this, "Connected to " + connectToIPAddress, Toast.LENGTH_LONG).show();
+                        //TODO chatServer is now on other devices, assign chatserver.
+                        //chatServer
+
+                        return true;
                     }
-                    return true;
+                    else {
+                        serverAddressInput.clearComposingText();
+                        Toast.makeText(this, "Invalid IPv4 Address!", Toast.LENGTH_LONG).show();
+                    }
                 }
                 return false;
             });

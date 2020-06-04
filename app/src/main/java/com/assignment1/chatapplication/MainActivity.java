@@ -24,14 +24,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.assignment1.chatapplication.SignInOut.chatServer;
+import static com.assignment1.chatapplication.SignInOut.getChatServer;
 
 
 public class MainActivity extends AppCompatActivity {
 
     NavigationView settings_drawer;
     EditText textInput;
-   // TextView txtOut;
     ImageButton sendButton, logOut, uploadButton;
     DrawerLayout mDrawerLayout;
     RecyclerView mMessageRecycler;
@@ -39,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     boolean doubleBackToExitPressedOnce = false;
     public static final int PICK_IMAGE = 1;
     public static List<MessageAttr> msgList =  new ArrayList<>();
-    //public String senderName = SignInOut.getUserUsername();
 
 
     @Override
@@ -51,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
         settings_drawer = findViewById(R.id.settings_drawer);
         textInput = findViewById(R.id.TextInput);
-        //txtOut = findViewById(R.id.txtOut);
         sendButton = findViewById(R.id.sendButton);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         logOut = findViewById(R.id.logOut_img);
@@ -75,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                     /* send text */
                     MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
                     try {
-                        chatServer.getWorker().handleMessage(message);
+                        getChatServer().getWorker().handleMessage(message);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -91,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             if (!textInput.getText().toString().isEmpty()){
                 MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
                 try {
-                    chatServer.getWorker().handleMessage(message);
+                    getChatServer().getWorker().handleMessage(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -102,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         logOut.setOnClickListener((View v) -> {
             try {
-                chatServer.getWorker().logoffHandle();
+                getChatServer().getWorker().logoffHandle();
             } catch (IOException e) {
                 e.printStackTrace();
             }
