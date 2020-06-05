@@ -12,8 +12,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.io.*;
-import android.widget.Toast;
+
+import org.apache.commons.lang3.StringUtils;
 
 
 public class ServerWorker extends Thread implements Runnable{
@@ -39,7 +39,7 @@ public class ServerWorker extends Thread implements Runnable{
     }
 
 /*
-   private void handleClientSocket() throws IOException, InterruptedException {
+   private void handleClientSocket() throws IOException {
         this.inputStream = clientSocket.getInputStream();
         this.outputStream = clientSocket.getOutputStream();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -78,7 +78,8 @@ public class ServerWorker extends Thread implements Runnable{
             }
         }
         clientSocket.close();
-    }*/
+    }
+ */
 
     private void printInfo() throws IOException {
         System.out.println(userList + "\n");

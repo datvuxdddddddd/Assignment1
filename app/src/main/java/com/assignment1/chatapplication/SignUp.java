@@ -31,12 +31,14 @@ public class SignUp extends AppCompatActivity {
             newUsername = username.getText().toString();
             newPassword = password.getText().toString();
             newRePassword = rePassword.getText().toString();
-           if(getChatServer().getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())){
-               finish();
-           }
+            if(getChatServer() == null) {
+                if (getChatServer().getWorker().handleRegister(newUsername, newPassword, newRePassword, this.getApplicationContext())) {
+                    finish();
+                }
+            }
+            //else //TODO send to server
+            //finish()
         });
-
         button_signup_return.setOnClickListener((View v) -> finish());
-
     }
 }

@@ -16,7 +16,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class SignInOut extends AppCompatActivity{
@@ -28,7 +32,7 @@ public class SignInOut extends AppCompatActivity{
     private static String userUsername;
     private static Server chatServer = null;
     private static Socket userSocket = null;
-    private static String connectToIPAddress = null;
+    private static String connectToServerIPAddress = null;
 
     public static boolean validateIPPattern(final String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
@@ -40,8 +44,8 @@ public class SignInOut extends AppCompatActivity{
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                        userSocket = new Socket(connectToIPAddress, 8818);
-                    } catch (IOException e) {
+                        userSocket = new Socket(getConnectToServerIPAddress(), 8818);
+            } catch (IOException e) {
                         e.printStackTrace();
                     }
             return null;
@@ -69,6 +73,7 @@ public class SignInOut extends AppCompatActivity{
         username = findViewById(R.id.Username);
         password = findViewById(R.id.Password);
         serverAddressInput = findViewById(R.id.serverAddressInput);
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         button_signin.setOnClickListener((View v) -> {
             userPassword = password.getText().toString();
@@ -77,21 +82,28 @@ public class SignInOut extends AppCompatActivity{
                 Toast.makeText(this, "Fields cannot be left empty", Toast.LENGTH_SHORT).show();
             }
             else {
-                try {
-                    if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())){
+                if (getChatServer() == null) {
+                    try {
+                        if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())) {
                             Toast.makeText(this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show();
 
-                        /* optionally, clear all text fields */
-                        username.getText().clear();
-                        password.getText().clear();
+                            /* optionally, clear all text fields */
+                            username.getText().clear();
+                            password.getText().clear();
 
-                        Intent mainUI = new Intent(this, MainActivity.class);
-                        startActivity(mainUI);
+                            Intent mainUI = new Intent(this, MainActivity.class);
+                            startActivity(mainUI);
+                        } else
+                            Toast.makeText(this, "Wrong username and/or password", Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    else Toast.makeText(this, "Wrong username and/or password", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+                else { /** send to server */
+
+                }
+                // TODO write to server.
+                //TODO then startActivity
             }
         });
 
@@ -107,26 +119,27 @@ public class SignInOut extends AppCompatActivity{
             if (chatServer == null){
                 chatServer = new Server(8818);
                 chatServer.start();
-                Toast.makeText(this, "Server started at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Server started at " + getWiFiIPAddress() + "\n Address is at " +
+                        chatServer.getServerSocket().getLocalSocketAddress(), Toast.LENGTH_SHORT).show();
             }
             else Toast.makeText(this, "Server already started", Toast.LENGTH_SHORT).show();
         });
 
         button_server_connect.setOnClickListener((View v) -> {
+
             final AlertDialog dialogBuilder = new AlertDialog.Builder(this).create();
             LayoutInflater inflater = this.getLayoutInflater();
             View dialogView = inflater.inflate(R.layout.popupwindows_server, null);
+
             serverAddressInput =dialogView.findViewById(R.id.serverAddressInput);
+
             serverAddressInput.setOnKeyListener((vv, keyCode, event) -> {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    connectToIPAddress = serverAddressInput.getText().toString();
-                    if (validateIPPattern(connectToIPAddress)){
+                    connectToServerIPAddress = serverAddressInput.getText().toString();
+                    if (validateIPPattern(connectToServerIPAddress)){
                         new createNewUserSocket().execute();
                         serverAddressInput.clearComposingText();
                         dialogBuilder.dismiss();
-                        Toast.makeText(this, "Connected to " + connectToIPAddress, Toast.LENGTH_LONG).show();
-                        //TODO chatServer is now on other devices, assign chatserver.
-                        //chatServer
 
                         return true;
                     }
@@ -140,6 +153,7 @@ public class SignInOut extends AppCompatActivity{
             dialogBuilder.setView(dialogView);
             dialogBuilder.show();
         });
+
     }
 
     public static String getUserUsername() {
@@ -149,5 +163,11 @@ public class SignInOut extends AppCompatActivity{
     public Socket getUserSocket() {
         return userSocket;
     }
+
+    public static String getConnectToServerIPAddress() {
+        return connectToServerIPAddress;
+    }
 }
+
+
 

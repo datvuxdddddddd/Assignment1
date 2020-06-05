@@ -98,11 +98,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         logOut.setOnClickListener((View v) -> {
-            try {
-                getChatServer().getWorker().logoffHandle();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (getChatServer() == null) {
+                try {
+                    getChatServer().getWorker().logoffHandle();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+            //else //TODO send to server
                 finish();
     });
 
