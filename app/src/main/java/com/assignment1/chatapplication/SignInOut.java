@@ -20,8 +20,12 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class SignInOut extends AppCompatActivity{
 
@@ -33,6 +37,8 @@ public class SignInOut extends AppCompatActivity{
     private static Server chatServer = null;
     private static Socket userSocket = null;
     private static String connectToServerIPAddress = null;
+
+    static DataOutputStream DOS;
 
     public static boolean validateIPPattern(final String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
@@ -48,6 +54,18 @@ public class SignInOut extends AppCompatActivity{
             } catch (IOException e) {
                         e.printStackTrace();
                     }
+            return null;
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private static class writeData extends AsyncTask<String, String, String>{
+        @Override
+        protected String doInBackground(String... strings) {
+            System.out.println("Writing data");
+                if (getUserSocket() != null) {
+
+                }
             return null;
         }
     }
@@ -73,6 +91,7 @@ public class SignInOut extends AppCompatActivity{
         username = findViewById(R.id.Username);
         password = findViewById(R.id.Password);
         serverAddressInput = findViewById(R.id.serverAddressInput);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         button_signin.setOnClickListener((View v) -> {
@@ -82,7 +101,11 @@ public class SignInOut extends AppCompatActivity{
                 Toast.makeText(this, "Fields cannot be left empty", Toast.LENGTH_SHORT).show();
             }
             else {
-                if (getChatServer() == null) {
+                if (getChatServer() == null) { /** send to server */
+                    // TODO write to server.
+                    //TODO then startActivity
+                }
+              else{
                     try {
                         if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())) {
                             Toast.makeText(this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show();
@@ -93,17 +116,11 @@ public class SignInOut extends AppCompatActivity{
 
                             Intent mainUI = new Intent(this, MainActivity.class);
                             startActivity(mainUI);
-                        } else
-                            Toast.makeText(this, "Wrong username and/or password", Toast.LENGTH_SHORT).show();
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                else { /** send to server */
-
-                }
-                // TODO write to server.
-                //TODO then startActivity
             }
         });
 
@@ -119,10 +136,9 @@ public class SignInOut extends AppCompatActivity{
             if (chatServer == null){
                 chatServer = new Server(8818);
                 chatServer.start();
-                Toast.makeText(this, "Server started at " + getWiFiIPAddress() + "\n Address is at " +
-                        chatServer.getServerSocket().getLocalSocketAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Server started at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
             }
-            else Toast.makeText(this, "Server already started", Toast.LENGTH_SHORT).show();
+            else Toast.makeText(this, "Server already started " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
         });
 
         button_server_connect.setOnClickListener((View v) -> {
@@ -138,9 +154,9 @@ public class SignInOut extends AppCompatActivity{
                     connectToServerIPAddress = serverAddressInput.getText().toString();
                     if (validateIPPattern(connectToServerIPAddress)){
                         new createNewUserSocket().execute();
-                        serverAddressInput.clearComposingText();
+                        serverAddressInput.setText("");
                         dialogBuilder.dismiss();
-
+                        chatServer = null;
                         return true;
                     }
                     else {
@@ -160,7 +176,7 @@ public class SignInOut extends AppCompatActivity{
         return userUsername;
     }
 
-    public Socket getUserSocket() {
+    public static Socket getUserSocket() {
         return userSocket;
     }
 

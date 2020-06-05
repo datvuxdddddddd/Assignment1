@@ -1,8 +1,13 @@
 package com.assignment1.chatapplication;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +16,13 @@ public class Server extends Thread implements Runnable{
     public final int serverPort;
     private ArrayList<ServerWorker> workerlist = new ArrayList<>();
     private ServerWorker worker;
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
+    private ServerSocket serverSocket = null;
+    private Socket clientSocket = null;
+
+    DataInputStream in;
+
+
+
 
     public ServerWorker getWorker() {
         return worker;
@@ -36,18 +46,24 @@ public class Server extends Thread implements Runnable{
 
     @Override
     public void run() {
+        if (getClientSocket() != null){ //RECEIVE DATA HERE
+
+        }
+
         try {
-            serverSocket = new ServerSocket(serverPort);
-            //InetAddress host = InetAddress.getLocalHost();
-            //System.out.println(host);
-            clientSocket = new Socket(SignInOut.getConnectToServerIPAddress(), 8818);
+            if (getServerSocket() == null) {
+                serverSocket = new ServerSocket(serverPort);
+            }
+            if (getClientSocket() == null) {
+                clientSocket = new Socket(SignInOut.getConnectToServerIPAddress(), 8818);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
         while (true) {
+            try{
                 System.out.println("Looking for connect request ...");
-            try {
-                clientSocket = serverSocket.accept();
+                clientSocket = serverSocket.accept();   //block and wait
             } catch (IOException e) {
                 e.printStackTrace();
             }

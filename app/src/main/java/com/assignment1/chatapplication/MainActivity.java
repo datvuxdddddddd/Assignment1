@@ -71,7 +71,10 @@ public class MainActivity extends AppCompatActivity {
                 if (!textInput.getText().toString().isEmpty()){
                     /* send text */
                     MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
-                    try {
+                    if (getChatServer() == null){
+                        //TODO
+                    }
+                    else try {
                         getChatServer().getWorker().handleMessage(message);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -87,7 +90,10 @@ public class MainActivity extends AppCompatActivity {
         sendButton.setOnClickListener((View v) -> {
             if (!textInput.getText().toString().isEmpty()){
                 MessageAttr message = new MessageAttr(1, textInput.getText().toString(), "tao");
-                try {
+                if (getChatServer() == null){
+                    //TODO
+                }
+                else try {
                     getChatServer().getWorker().handleMessage(message);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -99,14 +105,14 @@ public class MainActivity extends AppCompatActivity {
 
         logOut.setOnClickListener((View v) -> {
             if (getChatServer() == null) {
-                try {
+                //TODO send to server
+            }
+            else try {
                     getChatServer().getWorker().logoffHandle();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-            //else //TODO send to server
-                finish();
+            finish();
     });
 
         uploadButton.setOnClickListener((View v) -> {
