@@ -38,7 +38,8 @@ public class SignInOut extends AppCompatActivity{
     private static Socket userSocket = null;
     private static String connectToServerIPAddress = null;
 
-    static DataOutputStream DOS;
+    DataOutputStream DOS;
+    DataInputStream DIS;
 
     public static boolean validateIPPattern(final String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
@@ -64,6 +65,16 @@ public class SignInOut extends AppCompatActivity{
         protected String doInBackground(String... strings) {
             System.out.println("Writing data");
                 if (getUserSocket() != null) {
+                    DataOutputStream dOut;
+                    try {
+                        dOut = new DataOutputStream(getUserSocket().getOutputStream());
+                        dOut.writeUTF("This is the first type of message.");
+                        dOut.flush(); // Send off the data
+                        dOut.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                 }
             return null;
@@ -93,6 +104,17 @@ public class SignInOut extends AppCompatActivity{
         serverAddressInput = findViewById(R.id.serverAddressInput);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (getUserSocket() != null) {
+            try {
+                DIS = new DataInputStream(getUserSocket().getInputStream());
+                while (!DIS.readUTF().equals("")) {
+                    System.out.println(DIS.readUTF());
+                    DIS.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         button_signin.setOnClickListener((View v) -> {
             userPassword = password.getText().toString();
@@ -101,7 +123,7 @@ public class SignInOut extends AppCompatActivity{
                 Toast.makeText(this, "Fields cannot be left empty", Toast.LENGTH_SHORT).show();
             }
             else {
-                if (getChatServer() == null) { /** send to server */
+                if (getChatServer() == null) {
                     // TODO write to server.
                     //TODO then startActivity
                 }
@@ -136,7 +158,7 @@ public class SignInOut extends AppCompatActivity{
             if (chatServer == null){
                 chatServer = new Server(8818);
                 chatServer.start();
-                Toast.makeText(this, "Server started at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "New server at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
             }
             else Toast.makeText(this, "Server already started " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
         });
@@ -154,7 +176,7 @@ public class SignInOut extends AppCompatActivity{
                     connectToServerIPAddress = serverAddressInput.getText().toString();
                     if (validateIPPattern(connectToServerIPAddress)){
                         new createNewUserSocket().execute();
-                        serverAddressInput.setText("");
+                        serverAddressInput.getText().clear();
                         dialogBuilder.dismiss();
                         chatServer = null;
                         return true;
@@ -169,7 +191,6 @@ public class SignInOut extends AppCompatActivity{
             dialogBuilder.setView(dialogView);
             dialogBuilder.show();
         });
-
     }
 
     public static String getUserUsername() {

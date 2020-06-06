@@ -2,6 +2,8 @@ package com.assignment1.chatapplication;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -20,6 +22,8 @@ public class Server extends Thread implements Runnable{
     private Socket clientSocket = null;
 
     DataInputStream in;
+    DataOutputStream out;
+
 
 
 
@@ -68,8 +72,23 @@ public class Server extends Thread implements Runnable{
                 e.printStackTrace();
             }
             System.out.println("Accept connection from: " + clientSocket);
+            try {
+
+                out = new DataOutputStream(getClientSocket().getOutputStream());
+                out.writeUTF("Your connection is accepted");
+                out.flush();
+                getClientSocket().getOutputStream().flush();
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+
+
             worker = new ServerWorker(this, clientSocket);
             workerlist.add(worker);
+            System.out.println(workerlist);
             worker.run();
         }
     }
