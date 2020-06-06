@@ -6,9 +6,10 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.format.DateTimeFormatter;
 
-@RequiresApi(api = Build.VERSION_CODES.O)
+
 public class MessageAttr {
     public static final int VIEW_TYPE_MESSAGE_SENT = 1;
     public static final int VIEW_TYPE_MESSAGE_RECEIVED = 2;
@@ -24,12 +25,11 @@ public class MessageAttr {
     //Set time format
     DateTimeFormatter hhMM = DateTimeFormatter.ofPattern("HH:mm");
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public MessageAttr(int msgType, String msgContent, String sender) {
         this.msgType = msgType;
         this.msgContent = msgContent;
         this.sender = sender;
-        this.timeSent = LocalTime.now().format(hhMM);
+        this.timeSent = LocalDateTime.now().format(hhMM);
     }
 
     public String getMsgContent() {
