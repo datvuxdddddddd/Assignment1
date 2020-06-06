@@ -6,6 +6,8 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,8 +23,8 @@ public class Server extends Thread implements Runnable{
     private ServerSocket serverSocket = null;
     private Socket clientSocket = null;
 
-    DataInputStream in;
-    DataOutputStream out;
+    ObjectInputStream server_in;
+    ObjectOutputStream server_out;
 
 
 
@@ -48,44 +50,46 @@ public class Server extends Thread implements Runnable{
         return clientSocket;
     }
 
+    public void removeWorker(ServerWorker serverWorker) {
+        workerlist.remove(serverWorker);
+    }
+
     @Override
     public void run() {
-        if (getClientSocket() != null){ //RECEIVE DATA HERE
-
-        }
-
         try {
-            if (getServerSocket() == null) {
-                serverSocket = new ServerSocket(serverPort);
-            }
-            if (getClientSocket() == null) {
-                clientSocket = new Socket(SignInOut.getConnectToServerIPAddress(), 8818);
-            }
+            if (getServerSocket() == null) { serverSocket = new ServerSocket(serverPort);}
+            if (getClientSocket() == null) { clientSocket = new Socket(SignInOut.getConnectToServerIPAddress(), 8818);}
         } catch (IOException e) {
             e.printStackTrace();
         }
+//
+//        if (getClientSocket() != null){ //RECEIVE DATA HERE
+//            try {
+//                server_in = new ObjectInputStream(getClientSocket().getInputStream());
+//                System.out.println((String) server_in.readObject());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } catch (ClassNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
         while (true) {
             try{
                 System.out.println("Looking for connect request ...");
                 clientSocket = serverSocket.accept();   //block and wait
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
             System.out.println("Accept connection from: " + clientSocket);
-            try {
 
-                out = new DataOutputStream(getClientSocket().getOutputStream());
-                out.writeUTF("Your connection is accepted");
-                out.flush();
-                getClientSocket().getOutputStream().flush();
-                out.close();
+            try{
+                server_out = new ObjectOutputStream(getClientSocket().getOutputStream());
+                server_out.writeObject("Your connection is accepted");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-
-
             worker = new ServerWorker(this, clientSocket);
             workerlist.add(worker);
             System.out.println(workerlist);
@@ -93,7 +97,4 @@ public class Server extends Thread implements Runnable{
         }
     }
 
-    public void removeWorker(ServerWorker serverWorker) {
-        workerlist.remove(serverWorker);
-    }
 }

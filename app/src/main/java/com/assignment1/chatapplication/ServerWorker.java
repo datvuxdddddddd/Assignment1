@@ -8,6 +8,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -27,6 +29,9 @@ public class ServerWorker extends Thread implements Runnable{
     private static ArrayList<String> userList = new ArrayList<>();
     private static ArrayList<String> passwordList = new ArrayList<>();
 
+    private ObjectInputStream serverWorker_in;
+    private ObjectOutputStream serverWorker_out;
+
 
     public ServerWorker(Server server, Socket clientSocket){
         this.server = server;
@@ -37,6 +42,24 @@ public class ServerWorker extends Thread implements Runnable{
     public void run() {
             passwordList.add("admin");
             userList.add("admin");
+        try {
+            serverWorker_in = new ObjectInputStream(clientSocket.getInputStream());
+            String input = (String) serverWorker_in.readObject();
+
+            String[] token = StringUtils.split(input);
+            if (token == null) return;
+            else if (token[0] == "login"){
+                serverWorker_out = new ObjectOutputStream(clientSocket.getOutputStream());
+                if(handleLogin(token[1], token[2],null)){
+                    serverWorker_out.writeObject("true");
+                }
+                else serverWorker_out.writeObject("false");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 /*

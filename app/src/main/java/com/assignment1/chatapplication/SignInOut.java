@@ -21,6 +21,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -38,20 +40,21 @@ public class SignInOut extends AppCompatActivity{
     private static Socket userSocket = null;
     private static String connectToServerIPAddress = null;
 
-    DataOutputStream DOS;
-    DataInputStream DIS;
+    ObjectInputStream signInOut_in;
+    ObjectOutputStream signInOut_out;
+
+
 
     public static boolean validateIPPattern(final String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
         return ip.matches(PATTERN);
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private static class createNewUserSocket extends AsyncTask<Void, Void, Void>{
+    private class createNewUserSocket extends AsyncTask<Void, Void, Void>{
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                        userSocket = new Socket(getConnectToServerIPAddress(), 8818);
+                userSocket = new Socket(getConnectToServerIPAddress(), 8818);
             } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -59,25 +62,40 @@ public class SignInOut extends AppCompatActivity{
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private static class writeData extends AsyncTask<String, String, String>{
+    private class sendCredentials extends AsyncTask<String, Void, String>{
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
+                signInOut_out.writeObject("Incoming connection from " + getWiFiIPAddress());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private class checkConnectionResult extends AsyncTask<String, Void, String>{
         @Override
         protected String doInBackground(String... strings) {
-            System.out.println("Writing data");
-                if (getUserSocket() != null) {
-                    DataOutputStream dOut;
-                    try {
-                        dOut = new DataOutputStream(getUserSocket().getOutputStream());
-                        dOut.writeUTF("This is the first type of message.");
-                        dOut.flush(); // Send off the data
-                        dOut.close();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
+            if (getUserSocket() != null) {
+                try {
+                    signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
+                    String backgroundResult = (String) signInOut_in.readObject();
+                    System.out.println(backgroundResult);
+                    return backgroundResult;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
                 }
+            }
             return null;
+        }
+        @Override
+        protected void onPostExecute(String backgroundResult) {
+            super.onPostExecute(backgroundResult);
+            Toast.makeText(SignInOut.this,"SignInOut says: " + backgroundResult, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -88,6 +106,18 @@ public class SignInOut extends AppCompatActivity{
     public String getWiFiIPAddress(){
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+    }
+
+    public static String getUserUsername() {
+        return userUsername;
+    }
+
+    public static Socket getUserSocket() {
+        return userSocket;
+    }
+
+    public static String getConnectToServerIPAddress() {
+        return connectToServerIPAddress;
     }
 
     @Override
@@ -102,19 +132,12 @@ public class SignInOut extends AppCompatActivity{
         username = findViewById(R.id.Username);
         password = findViewById(R.id.Password);
         serverAddressInput = findViewById(R.id.serverAddressInput);
+        ////////////////////////////////////////////////
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (getUserSocket() != null) {
-            try {
-                DIS = new DataInputStream(getUserSocket().getInputStream());
-                while (!DIS.readUTF().equals("")) {
-                    System.out.println(DIS.readUTF());
-                    DIS.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         button_signin.setOnClickListener((View v) -> {
             userPassword = password.getText().toString();
@@ -124,8 +147,28 @@ public class SignInOut extends AppCompatActivity{
             }
             else {
                 if (getChatServer() == null) {
+                   // new writeData().execute();
                     // TODO write to server.
                     //TODO then startActivity
+                    new Thread(){
+                        public void run(){
+                            try {
+                                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
+                                signInOut_out.writeObject("login " + userUsername + " " + userPassword);
+
+                                signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
+                                if (signInOut_in.readObject().equals("true")){
+                                    Intent mainUI = new Intent(SignInOut.this, MainActivity.class);
+                                    startActivity(mainUI);
+                                }
+                                else Toast.makeText(SignInOut.this, "Wrong credentials", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
                 }
               else{
                     try {
@@ -156,6 +199,7 @@ public class SignInOut extends AppCompatActivity{
 
         button_server_start.setOnClickListener((View v) -> {
             if (chatServer == null){
+                userSocket = null;      //the device is the server, destroy socket to other servers
                 chatServer = new Server(8818);
                 chatServer.start();
                 Toast.makeText(this, "New server at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
@@ -175,10 +219,16 @@ public class SignInOut extends AppCompatActivity{
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     connectToServerIPAddress = serverAddressInput.getText().toString();
                     if (validateIPPattern(connectToServerIPAddress)){
-                        new createNewUserSocket().execute();
                         serverAddressInput.getText().clear();
                         dialogBuilder.dismiss();
-                        chatServer = null;
+
+                        new createNewUserSocket().execute();        //create a socket to server
+                                                                    // regardless of server location.
+                        if (!connectToServerIPAddress.equals(getWiFiIPAddress())){ //if attempts to connect to another server,
+                            chatServer = null;                               // disable local server.
+                        }
+                        new checkConnectionResult().execute();
+
                         return true;
                     }
                     else {
@@ -193,17 +243,7 @@ public class SignInOut extends AppCompatActivity{
         });
     }
 
-    public static String getUserUsername() {
-        return userUsername;
-    }
 
-    public static Socket getUserSocket() {
-        return userSocket;
-    }
-
-    public static String getConnectToServerIPAddress() {
-        return connectToServerIPAddress;
-    }
 }
 
 
