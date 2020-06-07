@@ -47,8 +47,8 @@ public class SignInOut extends AppCompatActivity{
     private static Socket userSocket = null;
     private static String connectToServerIPAddress = null;
 
-    public static ObjectInputStream signInOut_in;
-    public static ObjectOutputStream signInOut_out;
+    private ObjectInputStream signInOut_in;
+    private ObjectOutputStream signInOut_out;
 
 
 
@@ -63,12 +63,12 @@ public class SignInOut extends AppCompatActivity{
             try {
                 userSocket = new Socket(getConnectToServerIPAddress(), 8818);
 
-                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
-                System.out.println(signInOut_out);
-                signInOut_out.flush();
+//                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
+//                System.out.println(signInOut_out);
+//                signInOut_out.flush();
 
-                signInOut_in = new ObjectInputStream(getUserSocket().getInputStream()); //NULL
-                System.out.println(signInOut_in);
+//                 signInOut_in = new ObjectInputStream(getUserSocket().getInputStream()); //NULL
+//                 System.out.println(signInOut_in);
 
                 System.out.println("new socket created...");
             } catch (IOException | NullPointerException e) {
@@ -83,14 +83,14 @@ public class SignInOut extends AppCompatActivity{
         @Override
         protected String doInBackground(String... strings) {
             if (getUserSocket() != null) {
-//                try {
-//                    //signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
-//                    String backgroundResult = (String) signInOut_in.readObject();
-//                    System.out.println(backgroundResult);
-//                    return backgroundResult;
-//                } catch (IOException | ClassNotFoundException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
+                    String backgroundResult = (String) signInOut_in.readObject();
+                    System.out.println(backgroundResult);
+                    return backgroundResult;
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
             return null;
         }
@@ -176,7 +176,7 @@ public class SignInOut extends AppCompatActivity{
                             try {
                                 //signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
 
-                                signInOut_out.writeObject("login " + userUsername + " " + userPassword);
+                                //signInOut_out.writeObject("login " + userUsername + " " + userPassword);
                                 System.out.println("sending credentials...");
 
                                 //signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
@@ -262,7 +262,7 @@ public class SignInOut extends AppCompatActivity{
 
 
 
-                        //new checkConnectionResult().execute();
+                        new checkConnectionResult().execute();
 
 
                         return true;

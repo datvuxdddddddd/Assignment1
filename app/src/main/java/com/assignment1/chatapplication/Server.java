@@ -26,8 +26,8 @@ public class Server extends Thread implements Runnable {
     private ServerSocket serverSocket = null;
     private static Socket serverCommSocket = null;
 
-    public static ObjectInputStream server_in;
-    public static ObjectOutputStream server_out;
+    private ObjectInputStream server_in;
+    private ObjectOutputStream server_out;
 
 
 
@@ -66,10 +66,10 @@ public class Server extends Thread implements Runnable {
 
                 server_out = new ObjectOutputStream(getServerCommSocket().getOutputStream());
                 System.out.println(server_out);
-                server_out.flush();
+                //server_out.flush();
 
-                server_in = new ObjectInputStream(getServerCommSocket().getInputStream());
-                System.out.println(server_in);
+//                server_in = new ObjectInputStream(getServerCommSocket().getInputStream());
+//                System.out.println(server_in);
 
             }
         } catch (IOException e) {
@@ -90,19 +90,15 @@ public class Server extends Thread implements Runnable {
             try{
                 System.out.println("Accept connection from: " + serverSocket.accept());
                 System.out.println("Looking for connect request ...");
-                System.out.println(server_in.readObject());
 
-            } catch (IOException | ClassNotFoundException e) {
+                server_out.writeObject("Your connection is accepted");
+
+
+
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
-
-//            try{
-//                server_out = new ObjectOutputStream(getClientSocket().getOutputStream());
-//                server_out.writeObject("Your connection is accepted");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
 //            worker = new ServerWorker(this, clientSocket);
 //            workerlist.add(worker);
 //            System.out.println(workerlist);
