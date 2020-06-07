@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 public class ServerWorker extends Thread implements Runnable{
-    private final Socket clientSocket;
+    //private final Socket clientSocket;
     private final Server server;
     private String login = "placeHolder";
     private OutputStream outputStream;
@@ -29,37 +29,38 @@ public class ServerWorker extends Thread implements Runnable{
     private static ArrayList<String> userList = new ArrayList<>();
     private static ArrayList<String> passwordList = new ArrayList<>();
 
-    private ObjectInputStream serverWorker_in;
-    private ObjectOutputStream serverWorker_out;
-
-
-    public ServerWorker(Server server, Socket clientSocket){
+    public ServerWorker(Server server/*, Socket clientSocket*/){
         this.server = server;
-        this.clientSocket = clientSocket;
+       // this.clientSocket = clientSocket;
     }
 
     @Override
     public void run() {
+            System.out.println("Worker started");
             passwordList.add("admin");
             userList.add("admin");
-        try {
-            serverWorker_in = new ObjectInputStream(clientSocket.getInputStream());
-            String input = (String) serverWorker_in.readObject();
 
-            String[] token = StringUtils.split(input);
-            if (token == null) return;
-            else if (token[0] == "login"){
-                serverWorker_out = new ObjectOutputStream(clientSocket.getOutputStream());
-                if(handleLogin(token[1], token[2],null)){
-                    serverWorker_out.writeObject("true");
-                }
-                else serverWorker_out.writeObject("false");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+
+//        try {
+//            serverWorker_in = new ObjectInputStream(clientSocket.getInputStream());
+//            serverWorker_out = new ObjectOutputStream(clientSocket.getOutputStream());
+//            System.out.println("Worker listening...");
+//            while (true) {
+//
+//                input = (String) serverWorker_in.readObject();
+//
+//                String[] token = StringUtils.split(input);
+//                System.out.println("Worker received this..." + input);
+//
+//                if (token[0].equals("login")) {
+//                    if (handleLogin(token[1], token[2])) {
+//                        serverWorker_out.writeObject("true");
+//                    } else serverWorker_out.writeObject("false");
+//                }
+//            }
+//        } catch (IOException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 
 /*
@@ -184,14 +185,14 @@ public class ServerWorker extends Thread implements Runnable{
                 worker.send(offlmsg);
             }
         }
-        clientSocket.close();
+        //clientSocket.close();
     }
 
     public String getLogin() {
         return login;
     }
 
-    public boolean handleLogin(String username, String password, Context c) throws IOException {
+    public boolean handleLogin(String username, String password) throws IOException {
 
         if (isRegistered(username)) {
             if (password.equals(passwordList.get(userList.indexOf(username)))) {
@@ -201,7 +202,7 @@ public class ServerWorker extends Thread implements Runnable{
                         if (!login.equals(worker.getLogin()) && login.contentEquals("placeHolder")) {
                             String msg_1 = worker.getLogin() + ": online" + "\n";
                             send(msg_1);
-                            Toast.makeText(c, "Login", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(c, "Login", Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -214,12 +215,12 @@ public class ServerWorker extends Thread implements Runnable{
                 return true;
             }
             else {
-                Toast.makeText(c, "Wrong credentials", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(c, "Wrong credentials", Toast.LENGTH_SHORT).show();
                 return false;
             }
         }
         else {
-            Toast.makeText(c, "User not registered", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(c, "User not registered", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
