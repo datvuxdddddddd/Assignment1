@@ -30,13 +30,14 @@ import java.io.Writer;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
 import static com.assignment1.chatapplication.Server.getServerCommSocket;
 
-public class SignInOut extends AppCompatActivity{
+public class SignInOut extends AppCompatActivity {
 
     EditText username, password, serverAddressInput;
     Button button_signin, button_signup, button_server_start, button_server_connect;
@@ -44,11 +45,11 @@ public class SignInOut extends AppCompatActivity{
     private String userPassword;
     private static String userUsername;
     private static Server chatServer = null;
-    private static Socket userSocket = null;
+    public static Socket userSocket = null;
     private static String connectToServerIPAddress = null;
 
-    private ObjectInputStream signInOut_in;
-    private ObjectOutputStream signInOut_out;
+    private static DataInputStream dataInputStream;
+
 
 
 
@@ -57,49 +58,21 @@ public class SignInOut extends AppCompatActivity{
         return ip.matches(PATTERN);
     }
 
-    private class createNewUserSocket extends AsyncTask<Void, Void, Void>{
+    private static class createNewUserSocket extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
                 userSocket = new Socket(getConnectToServerIPAddress(), 8818);
-
-//                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
-//                System.out.println(signInOut_out);
-//                signInOut_out.flush();
-
-//                 signInOut_in = new ObjectInputStream(getUserSocket().getInputStream()); //NULL
-//                 System.out.println(signInOut_in);
-
-                System.out.println("new socket created...");
-            } catch (IOException | NullPointerException e) {
-                        e.printStackTrace();
-                    }
-            return null;
-        }
-    }
-
-
-    private class checkConnectionResult extends AsyncTask<String, Void, String>{
-        @Override
-        protected String doInBackground(String... strings) {
-            if (getUserSocket() != null) {
-                try {
-                    signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
-                    String backgroundResult = (String) signInOut_in.readObject();
-                    System.out.println(backgroundResult);
-                    return backgroundResult;
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+                dataInputStream = new DataInputStream(userSocket.getInputStream());
+                String message = dataInputStream.readUTF();
+                System.out.println("The message sent from the socket was: " + message);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
             return null;
         }
-        @Override
-        protected void onPostExecute(String backgroundResult) {
-            super.onPostExecute(backgroundResult);
-            Toast.makeText(SignInOut.this,"SignInOut says: " + backgroundResult, Toast.LENGTH_SHORT).show();
-        }
     }
+
 
     public static Server getChatServer() {
         return chatServer;
@@ -173,17 +146,8 @@ public class SignInOut extends AppCompatActivity{
                     //TODO then startActivity
                     new Thread(){
                         public void run(){
-                            try {
-                                //signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
-
-                                //signInOut_out.writeObject("login " + userUsername + " " + userPassword);
-                                System.out.println("sending credentials...");
-
-                                //signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
                                 while (true){
-                                    String input = (String) signInOut_in.readObject();
-                                    System.out.println("received response..." + input);
-
+                                    String input = "";
                                     if (input.equals("true")) {
                                         runOnUiThread(() -> Toast.makeText(SignInOut.this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show());
                                         username.getText().clear();
@@ -193,27 +157,8 @@ public class SignInOut extends AppCompatActivity{
                                     } else
                                         runOnUiThread(() -> Toast.makeText(SignInOut.this, "Wrong credentials", Toast.LENGTH_SHORT).show());
                                 }
-                            } catch (IOException | ClassNotFoundException e) {
-                                e.printStackTrace();
-                            }
                         }
                     }.start();
-                }
-              else{
-//                    try {
-//                        if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())) {
-//                            Toast.makeText(this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show();
-//
-//                            /* optionally, clear all text fields */
-//                            username.getText().clear();
-//                            password.getText().clear();
-//
-//                            Intent mainUI = new Intent(this, MainActivity.class);
-//                            startActivity(mainUI);
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                 }
             }
         });
@@ -230,7 +175,7 @@ public class SignInOut extends AppCompatActivity{
             if (chatServer == null){
                 userSocket = null;      //the device is the server, destroy socket to other servers
                 chatServer = new Server(8818);
-                chatServer.start();
+                new Thread(){public void run(){chatServer.start();}}.start();
 
 
                 Toast.makeText(this, "New server at " + getIPAddress(true), Toast.LENGTH_SHORT).show();
@@ -252,17 +197,10 @@ public class SignInOut extends AppCompatActivity{
                         serverAddressInput.getText().clear();
                         dialogBuilder.dismiss();
 
-                        new createNewUserSocket().execute();                        //create a socket to server regardless of server location.
-
-
-
                         if (!connectToServerIPAddress.equals(getIPAddress(true))){  //if attempts to connect to another server,
                             chatServer = null;                                      // disable local server.
                         }
-
-
-
-                        new checkConnectionResult().execute();
+                        new createNewUserSocket().execute();                        //create a socket to server regardless of server location.
 
 
                         return true;

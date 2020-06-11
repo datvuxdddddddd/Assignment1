@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +25,10 @@ public class Server extends Thread implements Runnable {
     public final int serverPort;
     private ArrayList<ServerWorker> workerlist = new ArrayList<>();
     private ServerWorker worker = new ServerWorker(this);
-    private ServerSocket serverSocket = null;
+    private static ServerSocket serverSocket = null;
     private static Socket serverCommSocket = null;
 
-    private ObjectInputStream server_in;
-    private ObjectOutputStream server_out;
-
-
-
+    private DataOutputStream dataOutputStream;
 
 
     public ServerWorker getWorker() {
@@ -41,11 +39,11 @@ public class Server extends Thread implements Runnable {
         return serverSocket;
     }
 
-    public Server(int serverPort){
+    public Server(int serverPort) {
         this.serverPort = serverPort;
     }
 
-    public List<ServerWorker> getWorkerList(){
+    public List<ServerWorker> getWorkerList() {
         return workerlist;
     }
 
@@ -60,49 +58,50 @@ public class Server extends Thread implements Runnable {
     @Override
     public void run() {
         try {
-            if (getServerSocket() == null) { serverSocket = new ServerSocket(serverPort);}
+            if (getServerSocket() == null) {
+                System.out.println("Creating new Chat Server...");
+
+                serverSocket = new ServerSocket(serverPort);
+                worker.start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             if (getServerCommSocket() == null) {
+                System.out.println("Creating new serverCommSocket...");
                 serverCommSocket = new Socket(SignInOut.getIPAddress(true), 8818);
-
-                server_out = new ObjectOutputStream(getServerCommSocket().getOutputStream());
-                System.out.println(server_out);
-                //server_out.flush();
-
-//                server_in = new ObjectInputStream(getServerCommSocket().getInputStream());
-//                System.out.println(server_in);
-
+                dataOutputStream = new DataOutputStream(serverCommSocket.getOutputStream());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-//        if (getServerCommSocket() != null){ //RECEIVE DATA HERE
-//            try {
-//                server_in = new ObjectInputStream(getServerCommSocket().getInputStream());
-//                System.out.println((String) server_in.readObject());
-//            } catch (IOException | ClassNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//        }
-        worker.start();
-
         while (true) {
-            try{
+
+
+            try {
                 System.out.println("Accept connection from: " + serverSocket.accept());
                 System.out.println("Looking for connect request ...");
-
-                server_out.writeObject("Your connection is accepted");
-
-
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            try {
+                dataOutputStream.writeUTF("Hello from the other side!");
+                dataOutputStream.flush(); // send the message
+                //dataOutputStream.close(); // close the output stream when we're done.
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
 
 //            worker = new ServerWorker(this, clientSocket);
 //            workerlist.add(worker);
 //            System.out.println(workerlist);
 
-        }
+
     }
 }
