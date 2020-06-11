@@ -1,24 +1,15 @@
 package com.assignment1.chatapplication;
 
-import android.widget.Adapter;
-
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.assignment1.chatapplication.SignInOut.getUserSocket;
 
 public class Server extends Thread implements Runnable {
 
@@ -28,7 +19,8 @@ public class Server extends Thread implements Runnable {
     private static ServerSocket serverSocket = null;
     private static Socket serverCommSocket = null;
 
-    private DataOutputStream dataOutputStream;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
 
 
     public ServerWorker getWorker() {
@@ -58,50 +50,54 @@ public class Server extends Thread implements Runnable {
     @Override
     public void run() {
         try {
-            if (getServerSocket() == null) {
-                System.out.println("Creating new Chat Server...");
-
+            if (serverSocket == null) {
+                System.out.println("Creating new chat server...");
                 serverSocket = new ServerSocket(serverPort);
+            }
+            if (serverCommSocket == null) {
+                System.out.println("Creating new serverCommSocket...");
+                serverCommSocket = new Socket(SignInOut.getIPAddress(true), 8818);
                 worker.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try {
-            if (getServerCommSocket() == null) {
-                System.out.println("Creating new serverCommSocket...");
-                serverCommSocket = new Socket(SignInOut.getIPAddress(true), 8818);
-                dataOutputStream = new DataOutputStream(serverCommSocket.getOutputStream());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
 
         while (true) {
+                new Thread() {
+                    public void run() {
+                        try {
+                            while (true) {
+                                in = new ObjectInputStream(serverCommSocket.getInputStream());
+                                String input = (String) in.readObject();
+                                System.out.println("from client:" +  input);
+                            }
+                        } catch (IOException | ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
 
 
-            try {
-                System.out.println("Accept connection from: " + serverSocket.accept());
+
+            try{
+
                 System.out.println("Looking for connect request ...");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                Socket client = serverSocket.accept();
+                System.out.println("Accept connection from: " + client);   //block and wait
 
-            try {
-                dataOutputStream.writeUTF("Hello from the other side!");
-                dataOutputStream.flush(); // send the message
-                //dataOutputStream.close(); // close the output stream when we're done.
+                out = new ObjectOutputStream(client.getOutputStream());
+                out.writeObject("Your connection is accepted");
+                out.flush();
+
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
-
-
-//            worker = new ServerWorker(this, clientSocket);
-//            workerlist.add(worker);
-//            System.out.println(workerlist);
-
-
     }
+
 }
