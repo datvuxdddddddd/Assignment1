@@ -208,7 +208,7 @@ public class ServerWorker extends Thread implements Runnable{
                 //String onlmsg = login + " online" + "\n";
                 for (ServerWorker worker : workerList) {
                     if (!login.equals(worker.getLogin()) && !login.contentEquals("placeHolder")) {
-                            //print user online
+                        //print user online
                     }
                 }
                 return true;

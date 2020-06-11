@@ -26,8 +26,12 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
 public class SignInOut extends AppCompatActivity{
 
@@ -103,9 +107,41 @@ public class SignInOut extends AppCompatActivity{
         return chatServer;
     }
 
-    public String getWiFiIPAddress(){
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+    public static String getUserUsername() {
+        return userUsername;
+    }
+
+    public static Socket getUserSocket() {
+        return userSocket;
+    }
+
+    public static String getConnectToServerIPAddress() {
+        return connectToServerIPAddress;
+    }
+
+    public String getWiFiIPAddress(boolean useIPv4){
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress()) {
+                        String sAddr = addr.getHostAddress();
+                        boolean isIPv4 = sAddr.indexOf(':')<0;
+                        if (useIPv4) {
+                            if (isIPv4)
+                                return sAddr;
+                        } else {
+                            if (!isIPv4) {
+                                int delim = sAddr.indexOf('%'); // drop ip6 zone suffix
+                                return delim<0 ? sAddr.toUpperCase() : sAddr.substring(0, delim).toUpperCase();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) { } // for now eat exceptions
+        return "";
     }
 
     public static String getUserUsername() {
@@ -146,46 +182,19 @@ public class SignInOut extends AppCompatActivity{
                 Toast.makeText(this, "Fields cannot be left empty", Toast.LENGTH_SHORT).show();
             }
             else {
-                if (getChatServer() == null) {
-                   // new writeData().execute();
-                    // TODO write to server.
-                    //TODO then startActivity
-                    new Thread(){
-                        public void run(){
-                            try {
-                                signInOut_out = new ObjectOutputStream(getUserSocket().getOutputStream());
-                                signInOut_out.writeObject("login " + userUsername + " " + userPassword);
-
-                                signInOut_in = new ObjectInputStream(getUserSocket().getInputStream());
-                                if (signInOut_in.readObject().equals("true")){
-                                    Intent mainUI = new Intent(SignInOut.this, MainActivity.class);
-                                    startActivity(mainUI);
-                                }
-                                else Toast.makeText(SignInOut.this, "Wrong credentials", Toast.LENGTH_SHORT).show();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (ClassNotFoundException e) {
-                                e.printStackTrace();
-                            }
+                new Thread() {
+                    public void run() {
+                        try {
+                            DOS = new ObjectOutputStream(getUserSocket().getOutputStream());
+                            DOS.writeObject("serverlogin " + userUsername + " " + userPassword);
+                            System.out.println("serverlogin " + userUsername + " " + userPassword);
+                            DOS.flush();
+                            //DOS.reset();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    };
-                }
-              else{
-                    try {
-                        if (getChatServer().getWorker().handleLogin(userUsername, userPassword, this.getApplicationContext())) {
-                            Toast.makeText(this, "Welcome, " + userUsername, Toast.LENGTH_SHORT).show();
-
-                            /* optionally, clear all text fields */
-                            username.getText().clear();
-                            password.getText().clear();
-
-                            Intent mainUI = new Intent(this, MainActivity.class);
-                            startActivity(mainUI);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
+                }.start();
             }
         });
 
@@ -202,9 +211,9 @@ public class SignInOut extends AppCompatActivity{
                 userSocket = null;      //the device is the server, destroy socket to other servers
                 chatServer = new Server(8818);
                 chatServer.start();
-                Toast.makeText(this, "New server at " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "New server at " + getWiFiIPAddress(true), Toast.LENGTH_SHORT).show();
             }
-            else Toast.makeText(this, "Server already started " + getWiFiIPAddress(), Toast.LENGTH_SHORT).show();
+            else Toast.makeText(this, "Server already started " + getWiFiIPAddress(true), Toast.LENGTH_SHORT).show();
         });
 
         button_server_connect.setOnClickListener((View v) -> {

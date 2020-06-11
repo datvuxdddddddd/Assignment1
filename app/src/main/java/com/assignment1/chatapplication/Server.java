@@ -1,27 +1,23 @@
 package com.assignment1.chatapplication;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.assignment1.chatapplication.SignInOut.getUserSocket;
 
 public class Server extends Thread implements Runnable{
 
     public final int serverPort;
     private ArrayList<ServerWorker> workerlist = new ArrayList<>();
-    private ServerWorker worker;
+    private ServerWorker worker = new ServerWorker(this);
     private ServerSocket serverSocket = null;
-    private Socket clientSocket = null;
+    private Socket serverCommSocket = null;
 
     ObjectInputStream server_in;
     ObjectOutputStream server_out;
@@ -46,8 +42,12 @@ public class Server extends Thread implements Runnable{
         return workerlist;
     }
 
-    public Socket getClientSocket() {
-        return clientSocket;
+    public Socket getServerCommSocket() {
+        return serverCommSocket;
+    }
+
+    public void removeWorker(ServerWorker serverWorker) {
+        workerlist.remove(serverWorker);
     }
 
     public void removeWorker(ServerWorker serverWorker) {
@@ -75,6 +75,26 @@ public class Server extends Thread implements Runnable{
 //        }
 
         while (true) {
+            if (getUserSocket() != null) {
+
+
+                    new Thread() {
+                        public void run() {
+                            try {
+                                while (true) {
+                                    System.out.println("creating input stream...");
+                                    in = new ObjectInputStream(getServerCommSocket().getInputStream());
+                                    System.out.println("from server:" + in.readObject());
+                                    //in.close();
+                                }
+                            } catch (IOException | ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }.start();
+
+
+            }
             try{
                 System.out.println("Looking for connect request ...");
                 clientSocket = serverSocket.accept();   //block and wait
@@ -82,18 +102,7 @@ public class Server extends Thread implements Runnable{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("Accept connection from: " + clientSocket);
 
-            try{
-                server_out = new ObjectOutputStream(getClientSocket().getOutputStream());
-                server_out.writeObject("Your connection is accepted");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            worker = new ServerWorker(this, clientSocket);
-            workerlist.add(worker);
-            System.out.println(workerlist);
-            worker.run();
         }
     }
 
